@@ -34,7 +34,7 @@ public class TransactionServiceImpl implements TransactionService {
 		} else {
 			throw new BadRequestException("Transaction failed");
 		}
-		return null;
+		return transaction;
 	}
 
 	@Override
