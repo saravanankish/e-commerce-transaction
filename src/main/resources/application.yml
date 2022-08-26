@@ -1,18 +1,18 @@
 server:
-  port: ${server-port:8081}
+  port: ${server-port}
   servlet: 
     context-path: /api
 spring: 
   datasource:
-    url: jdbc:mysql://localhost:3306/${database-name:project_test}
-    username: ${database-username:root}
-    password: ${database-password:password}
+    url: ${database-url}/${database-name}
+    username: ${database-username}
+    password: ${database-password}
     driver-class-name: com.mysql.cj.jdbc.Driver
   jpa:
-    show-sql: true
+    show-sql: ${show-sql}
     hibernate:
-      ddl-auto: update
+      ddl-auto: ${ddl-auto}
   rabbitmq:
     template:
-      exchange: ${rabbitmq-default-exchange:transaction}
-      routing-key: ${rabbitmq-default-routekey:my-routing-key}
+      exchange: ${rabbitmq-default-exchange}
+      routing-key: ${rabbitmq-default-routekey}
