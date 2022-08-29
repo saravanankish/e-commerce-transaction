@@ -3,10 +3,15 @@ package com.saravanank.ecommerce.transaction.service;
 import java.util.Date;
 import java.util.List;
 
-import org.springframework.amqp.rabbit.core.RabbitTemplate;
+import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestTemplate;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonMappingException;
 import com.saravanank.ecommerce.transaction.exceptions.BadRequestException;
 import com.saravanank.ecommerce.transaction.model.Json;
 import com.saravanank.ecommerce.transaction.model.Transactions;
@@ -19,22 +24,29 @@ public class TransactionServiceImpl implements TransactionService {
 	private TransactionRepository transactionRepo;
 
 	@Autowired
-	private RabbitTemplate rabbitTemplate;
+	private RestTemplate restTemplate;
 	
-	@Override
-	public Transactions makeTransaction(Transactions transaction) {
+	@Value("${transaction.application.backend-url}")
+	private String backendUrl;
+
+	@RabbitListener(queues = "my-transactions")
+	public void makeTransaction(String data) throws JsonMappingException, JsonProcessingException, IllegalArgumentException {
+		System.out.println(data);
+		Transactions transaction = Json.fromJson(Json.parse(data), Transactions.class);
 		if (transaction.getAmount() <= 0)
 			throw new BadRequestException("Amount should be greater than 0");
 		transaction.setTransactionDate(new Date());
+		transaction.setSuccess(true);
+		transaction.setReceived(true);
 		transactionRepo.saveAndFlush(transaction);
-		if (transaction.isSuccess()) {
-			if (transaction.isReceived()) {
-				rabbitTemplate.convertAndSend(Json.toJson(transaction).toString());
+		try {			
+			ResponseEntity<String> response = restTemplate.postForEntity(backendUrl + "/order/received/payment", transaction, String.class);
+			if(response.getStatusCode().value() != 202) {
+				System.out.println("Failed to send transaction received status");
 			}
-		} else {
-			throw new BadRequestException("Transaction failed");
+		} catch(Exception exp) {
+			System.out.println("Failed to send transaction received status");
 		}
-		return transaction;
 	}
 
 	@Override

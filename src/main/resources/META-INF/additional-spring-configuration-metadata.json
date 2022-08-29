@@ -1,0 +1,5 @@
+{"properties": [{
+  "name": "transaction.application.backend-url",
+  "type": "java.lang.String",
+  "description": "A description for 'transaction.application.backend-url'"
+}]}
