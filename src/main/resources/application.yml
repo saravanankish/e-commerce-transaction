@@ -12,7 +12,16 @@ spring:
     show-sql: ${show-sql}
     hibernate:
       ddl-auto: ${ddl-auto}
+  sql:
+    init:
+      mode: always
+      schema-locations:
+      - classpath:/schema.sql
+      continue-on-error: true
   rabbitmq:
     template:
       exchange: ${rabbitmq-default-exchange}
       routing-key: ${rabbitmq-default-routekey}
+transaction:
+  application:
+    backend-url: ${backend-url}
